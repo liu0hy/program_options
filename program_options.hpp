@@ -101,27 +101,33 @@ constexpr bool is_legal_type_v = is_legal_type<T>::value;
 enum class type_category { IllegalType = 0, Integral, FloatingPoint, String };
 template <typename T, bool is_integral, bool is_floating_point, bool is_string>
 struct type_name_impl {
-    static constexpr enum type_category value { type_category::IllegalType };
+    static constexpr auto value = type_category::IllegalType;
 };
 
 template <typename T>
 struct type_name_impl<T, true, false, false> {
-    static constexpr enum type_category value { type_category::Integral };
+    static constexpr auto value = type_category::Integral;
 };
 
 template <typename T>
 struct type_name_impl<T, false, true, false> {
-    static constexpr enum type_category value { type_category::FloatingPoint };
+    static constexpr auto value = type_category::FloatingPoint;
 };
 
 template <typename T>
 struct type_name_impl<T, false, false, true> {
-    static constexpr enum type_category value { type_category::String };
+    static constexpr auto value = type_category::String;
 };
+
+#ifdef _MSC_VER
+using type_category_t = enum class type_category;
+#else
+using type_category_t = enum type_category;
+#endif
 
 template <typename T>
 string_t type_name() {
-    static std::unordered_map<enum type_category, string_t> names {
+    static std::unordered_map<type_category_t, string_t> names {
         std::make_pair(type_category::IllegalType, "IllegalType"),
         std::make_pair(type_category::Integral, "Integral"),
         std::make_pair(type_category::FloatingPoint, "FloatingPoint"),
@@ -570,7 +576,7 @@ class parser {
         virtual bool set(const string_t& value) override {
             try {
                 actual_value_ = read(value);
-            } catch (const std::exception& e) {
+            } catch (const std::exception&) {
                 return false;
             }
             return has_set_ = true;
